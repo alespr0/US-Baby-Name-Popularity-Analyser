@@ -18,7 +18,7 @@ def load_national_data():
 
 @st.cache_data
 def load_top_states_data():
-    return pd.read_parquet("data/us_baby_names_top_states.parquet")
+    return pd.read_parquet("data/us_baby_names_top_states.parquet", engine="pyarrow")
 
 df_national = load_national_data()
 df_top_states = load_top_states_data()
@@ -249,4 +249,5 @@ with st.expander("📊 See popularity over time"):
         st.info("No historical trend available.")
     else:
         st.line_chart(trend)
+
 
