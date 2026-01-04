@@ -16,75 +16,6 @@ st.markdown(""" Explore the popularity of baby names in the US over the years! "
 def load_national_data():
     return pd.read_parquet("data/us_baby_names_national.parquet")
 
-@st.cache_data
-def load_top_states_data():
-    return pd.read_parquet("data/us_baby_names_top_states.parquet", engine="pyarrow")
-
-df_national = load_national_data()
-df_top_states = load_top_states_data()
-
-us_state_to_abbrev = {
-    "Alabama": "AL",
-    "Alaska": "AK",
-    "Arizona": "AZ",
-    "Arkansas": "AR",
-    "California": "CA",
-    "Colorado": "CO",
-    "Connecticut": "CT",
-    "Delaware": "DE",
-    "Florida": "FL",
-    "Georgia": "GA",
-    "Hawaii": "HI",
-    "Idaho": "ID",
-    "Illinois": "IL",
-    "Indiana": "IN",
-    "Iowa": "IA",
-    "Kansas": "KS",
-    "Kentucky": "KY",
-    "Louisiana": "LA",
-    "Maine": "ME",
-    "Maryland": "MD",
-    "Massachusetts": "MA",
-    "Michigan": "MI",
-    "Minnesota": "MN",
-    "Mississippi": "MS",
-    "Missouri": "MO",
-    "Montana": "MT",
-    "Nebraska": "NE",
-    "Nevada": "NV",
-    "New Hampshire": "NH",
-    "New Jersey": "NJ",
-    "New Mexico": "NM",
-    "New York": "NY",
-    "North Carolina": "NC",
-    "North Dakota": "ND",
-    "Ohio": "OH",
-    "Oklahoma": "OK",
-    "Oregon": "OR",
-    "Pennsylvania": "PA",
-    "Rhode Island": "RI",
-    "South Carolina": "SC",
-    "South Dakota": "SD",
-    "Tennessee": "TN",
-    "Texas": "TX",
-    "Utah": "UT",
-    "Vermont": "VT",
-    "Virginia": "VA",
-    "Washington": "WA",
-    "West Virginia": "WV",
-    "Wisconsin": "WI",
-    "Wyoming": "WY",
-    "District of Columbia": "DC",
-    "American Samoa": "AS",
-    "Guam": "GU",
-    "Northern Mariana Islands": "MP",
-    "Puerto Rico": "PR",
-    "United States Minor Outlying Islands": "UM",
-    "Virgin Islands, U.S.": "VI",
-}
-abbrev_to_us_state = dict(map(reversed, us_state_to_abbrev.items()))
-df_top_states["state_full"] = df_top_states["state"].map(abbrev_to_us_state)
-
 # 4. Helper functions (stats logic)
 def get_national_rankings(name, year):
     national = (
@@ -116,23 +47,6 @@ def get_sex_percentages(name, year):
         "male_pct": totals.get("M", 0) / total * 100 if total else 0,
         "female_pct": totals.get("F", 0) / total * 100 if total else 0,
     }
-
-
-def get_state_rankings(name, year, top_n=5):
- data = df_top_states[
-        (df_top_states["name"] == name) &
-        (df_top_states["year"] == year)
-    ]
- if data.empty:
-        return None
- state_totals = (
-        data
-        .groupby("state_full", as_index=False)["name_count"]
-        .sum()
-        .sort_values("name_count", ascending=False)
-        .head(top_n)
-    )
- return state_totals
 
 
 def increase_in_popularity(name, birth_year):
@@ -210,21 +124,6 @@ with col1:
 with col2:
     st.metric("Used for girls", f"{sex_pct['female_pct']:.1f}%")
 
-st.subheader("📍 Where was this name most popular?")
-
-top_states = get_state_rankings(name, year)
-
-if top_states is None or top_states.empty:
-    st.info("No state-level data available for this year.")
-else:
-    st.write(f"Top states for **{name}** in **{year}**:")
-
-    for i, row in top_states.iterrows():
-        st.write(f"• **{row['state_full']}** — {int(row['name_count']):,} babies")
-
-    st.bar_chart(
-        top_states.set_index("state_full")["name_count"]
-    )
 st.subheader("📈 Popularity over time")
 
 change, latest_year = increase_in_popularity(name, year)
@@ -249,5 +148,6 @@ with st.expander("📊 See popularity over time"):
         st.info("No historical trend available.")
     else:
         st.line_chart(trend)
+
 
 
