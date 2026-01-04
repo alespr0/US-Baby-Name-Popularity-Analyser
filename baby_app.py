@@ -15,6 +15,7 @@ st.markdown(""" Explore the popularity of baby names in the US over the years! "
 @st.cache_data
 def load_national_data():
     return pd.read_parquet("data/us_baby_names_national.parquet")
+df_national=load_national_data()
 
 # 4. Helper functions (stats logic)
 def get_national_rankings(name, year):
@@ -148,6 +149,7 @@ with st.expander("📊 See popularity over time"):
         st.info("No historical trend available.")
     else:
         st.line_chart(trend)
+
 
 
 
